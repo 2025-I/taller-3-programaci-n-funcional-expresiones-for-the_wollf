@@ -21,6 +21,7 @@ jobs:
         setup-command: chmod u+x gradlew
         command: "./gradlew build -x test"
         timeout: 20
+        max-score: 20
     - name: Autograding Reporter
       uses: classroom-resources/autograding-grading-reporter@v1
       env:
