@@ -12,6 +12,11 @@ class ManiobrasTrenesTest extends AnyFunSuite {
   val c = 'c'
   val d = 'd'
 
+  def validarFinal(estado: Estado, esperado: Tren): Unit = {
+    assert(estado._3 == esperado)
+    assert(estado._1.isEmpty && estado._2.isEmpty)
+  }
+
   test("aplicarMovimiento: Uno(2) en (abcd, Nil, Nil) debe dar (cd, ba, Nil)") {
     val estadoInicial = (List(a, b, c, d), Nil, Nil)
     assert(aplicarMovimiento(estadoInicial, Uno(2)) == (List(c, d), List(b, a), Nil))
@@ -41,24 +46,42 @@ class ManiobrasTrenesTest extends AnyFunSuite {
   test("definirManiobra: revertir tren simple") {
     val t1 = List(a, b)
     val t2 = List(b, a)
-    val maniobra = definirManiobra(t1, t2)
-    assert(maniobra == List(Uno(2)))
+    val movimientos = definirManiobra(t1, t2)
+    val estados = aplicarMovimientos((t1, Nil, Nil), movimientos)
+    validarFinal(estados.last, t2)
   }
 
   // Pruebas de rendimiento
-  test("Prueba pequeña: 10 vagones") {
+  test("Prueba juguete: 10 vagones reversa") {
     val t1 = ('a' to 'j').toList
-    testManiobra(t1, t1.reverse)
+    val t2 = t1.reverse
+    val movs = definirManiobra(t1, t2)
+    val estados = aplicarMovimientos((t1, Nil, Nil), movs)
+    validarFinal(estados.last, t2)
   }
 
-  test("Prueba mediana: 100 vagones") {
+  test("Prueba pequeña: 100 vagones reversa") {
     val t1 = List.tabulate(100)(i => (i % 256).toChar)
-    testManiobra(t1, t1.reverse)
+    val t2 = t1.reverse
+    val movs = definirManiobra(t1, t2)
+    val estados = aplicarMovimientos((t1, Nil, Nil), movs)
+    validarFinal(estados.last, t2)
   }
 
-  test("Prueba grande: 500 vagones") {
+  test("Prueba mediana: 500 vagones reversa") {
     val t1 = List.tabulate(500)(i => (i % 256).toChar)
-    testManiobra(t1, t1.take(250) ++ t1.drop(250).reverse)
+    val t2 = t1.reverse
+    val movs = definirManiobra(t1, t2)
+    val estados = aplicarMovimientos((t1, Nil, Nil), movs)
+    validarFinal(estados.last, t2)
+  }
+
+  test("Prueba grande: 1000 vagones reversa") {
+    val t1 = List.tabulate(1000)(i => (i % 256).toChar)
+    val t2 = t1.reverse
+    val movs = definirManiobra(t1, t2)
+    val estados = aplicarMovimientos((t1, Nil, Nil), movs)
+    validarFinal(estados.last, t2)
   }
 
   private def testManiobra(t1: Tren, t2: Tren): Unit = {

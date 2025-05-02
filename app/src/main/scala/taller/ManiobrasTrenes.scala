@@ -30,10 +30,20 @@ object ManiobrasTrenes {
       val (movidos, restantes) = principal.splitAt(n)
       (restantes, movidos.reverse ++ uno, dos)
 
+    case Uno(n) if n < 0 =>
+      val (principal, uno, dos) = e
+      val (movidos, restantes) = uno.splitAt(-n)
+      (movidos.reverse ++ principal, restantes, dos)
+
     case Dos(n) if n > 0 =>
       val (principal, uno, dos) = e
       val (movidos, restantes) = principal.splitAt(n)
       (restantes, uno, movidos.reverse ++ dos)
+
+    case Dos(n) if n < 0 =>
+      val (principal, uno, dos) = e
+      val (movidos, restantes) = dos.splitAt(-n)
+      (movidos.reverse ++ principal, uno, restantes)
 
     case _ => e
   }
@@ -50,12 +60,25 @@ object ManiobrasTrenes {
         val nodo = queue.head
         val (principal, uno, dos) = nodo.estado
 
-        if (dos == t2 && principal.isEmpty && uno.isEmpty) nodo.movimientos.reverse
-        else if (visited.contains(nodo.estado)) bfs(queue.tail, visited)
+        if (dos == t2 && principal.isEmpty && uno.isEmpty)
+          nodo.movimientos.reverse
+        else if (visited.contains(nodo.estado))
+          bfs(queue.tail, visited)
         else {
           val posiblesMovimientos =
-            if (principal.length > 100) List(Uno(1), Dos(1))
-            else (1 to principal.length).flatMap(n => List(Uno(n), Dos(n))).toList
+            if (principal.length > 100)
+              List(Uno(1), Dos(1))
+            else
+              (for {
+                n <- 1 to principal.length
+                m <- List(Uno(n), Dos(n))
+              } yield m).toList ++
+                (for {
+                  n <- 1 to uno.length
+                } yield Uno(-n)).toList ++
+                (for {
+                  n <- 1 to dos.length
+                } yield Dos(-n)).toList
 
           val nuevosNodos = posiblesMovimientos.iterator
             .map(m => Nodo(aplicarMovimiento(nodo.estado, m), m :: nodo.movimientos))
